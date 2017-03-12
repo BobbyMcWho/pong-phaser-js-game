@@ -11,7 +11,7 @@ var score2;
 var score2_text;
 var score1_text;
 var win_text;
-var showDebug = true;
+var showDebug = true;;
 var invisible_ball;
     function preload(){
         game.load.image('paddle','assets/paddle.png');
@@ -26,13 +26,12 @@ var invisible_ball;
     function create(){
 
         ball_launched = false;
-        ball_velocity = 400;
+        ball_velocity = game.world.width/2;
 
         paddle1 = create_paddle(0, game.world.centerY);
         paddle2 = create_paddle(game.world.width - 8 , game.world.centerY);
-        ball = create_ball(game.world.centerX,game.world.centerY);
-        invisible_ball = create_ball(0,0);
-        invisible_ball.visible = false;
+        ball = create_ball(game.world.centerX,game.world.centerY,false);
+        invisible_ball = create_ball(game.world.centerX,game.world.centerY,true);
         game.input.onDown.add(launch_ball,this);
 
         score1_text = game.add.bitmapText(128,128,'font','0',64);
@@ -54,17 +53,27 @@ var invisible_ball;
 
         if(game.physics.arcade.collide(paddle1,ball)){
             game.sound.play('boop');
-            ball.body.velocity.x+=20;
-            invisible_ball = create_ball(ball.centerX,ball.centerY);
-            invisible_ball.visible = false;
-            invisible_ball.body.velocity.setTo(800,800);
+            invisible_ball.x = ball.body.x;
+            invisible_ball.y = ball.body.y;
+            ball.body.velocity.x += paddle1.body.velocity.x;
+            invisible_ball.body.velocity.setTo(ball.body.velocity.x*2,ball.body.velocity.y*2);
             
         }
         if(invisible_ball.body.blocked.right){
                 invisible_ball.body.velocity.setTo(0,0);
-                var distanceToMove = Math.abs(paddle2.body.centerX - invisible_ball.body.centerX);
-                paddle2.moveTo(1000,distanceToMove,90);
+                if(!paddle2.body.hitTest(paddle2.body.x,invisible_ball.body.y)){
+                    var directionMultiplier = invisible_ball.body.y >= paddle2.body.y ? 1 : -1;
+                    paddle2.body.velocity.setTo(directionMultiplier*Math.abs(ball.body.velocity.y));
+
+                }
+                else{
+                    paddle2.body.velocity.y = 0;
+                    invisible_ball.x = game.world.centerX;
+                    invisible_ball.y = game.world.centerY;                  
+                }
+                               
             }
+
         if(game.physics.arcade.collide(paddle2,ball)){
             game.sound.play('boop2');
             ball.body.velocity.x+=20;
@@ -107,9 +116,10 @@ var invisible_ball;
         game.physics.arcade.enable(paddle);
         paddle.body.syncBounds = true;
         paddle.anchor.setTo(0.5,0.5);
-        paddle.scale.setTo(game.world.height/5/256,0.5);
+        paddle.scale.setTo(.5,game.world.height/5/256);
         paddle.body.collideWorldBounds = true;
         paddle.body.immovable = true;
+        paddle.body.friction.setTo(0,10);
         return paddle;
     }
 
@@ -123,12 +133,15 @@ var invisible_ball;
         }
     }
 
-    function create_ball(x,y){
+    function create_ball(x,y,invisible){
         var newBall = game.add.sprite(x,y,'ball');
         newBall.anchor.setTo(0.5,0.5);
         game.physics.arcade.enable(newBall);
         newBall.body.collideWorldBounds = true;
         newBall.body.bounce.setTo(1,1);
+        newBall.renderable = !invisible;
+        //newBall.body.setCircle(16);
+
 
         return newBall;
     }
@@ -141,10 +154,13 @@ var invisible_ball;
             ball_launched = false;
         }
         else{
+            var direction = Math.floor((Math.random()*2))+1 == 1 ? -1 : 1;
             ball.body.velocity.x = -ball_velocity;
-            ball.body.velocity.y = ball_velocity;
+            ball.body.velocity.y = direction*ball_velocity+Math.floor(Math.random()*100);
             ball_launched = true;
         }
+        paddle2.body.velocity.setTo(0);
+        paddle2.body.maxVelocity.x = 0;
         paddle2.y = game.world.height /2;
 
     }
