@@ -1,6 +1,6 @@
 
 
-var game = new Phaser.Game(800,600,Phaser.AUTO,'',{preload:preload,create: create,update:update,render:render});
+var game = new Phaser.Game('100%','100%',Phaser.AUTO,'',{preload:preload,create: create,update:update,render:render,resize:resize});
 var paddle1;
 var paddle2;
 var ball;
@@ -8,7 +8,11 @@ var ball_launched;
 var ball_velocity;
 var score1;
 var score2;
+var score2_text;
+var score1_text;
+var win_text;
 var showDebug = true;
+var invisible_ball;
     function preload(){
         game.load.image('paddle','assets/paddle.png');
         game.load.image('ball','assets/ball.png');
@@ -16,6 +20,7 @@ var showDebug = true;
         game.load.bitmapFont('font','assets/font.png','assets/font.xml');
         game.load.audio('boop','assets/boop.wav');
         game.load.audio('boop2','assets/boop2.wav');
+        game.load.audio('death','assets/death.wav');
     }
 
     function create(){
@@ -26,7 +31,8 @@ var showDebug = true;
         paddle1 = create_paddle(0, game.world.centerY);
         paddle2 = create_paddle(game.world.width - 8 , game.world.centerY);
         ball = create_ball(game.world.centerX,game.world.centerY);
-
+        invisible_ball = create_ball(0,0);
+        invisible_ball.visible = false;
         game.input.onDown.add(launch_ball,this);
 
         score1_text = game.add.bitmapText(128,128,'font','0',64);
@@ -49,7 +55,16 @@ var showDebug = true;
         if(game.physics.arcade.collide(paddle1,ball)){
             game.sound.play('boop');
             ball.body.velocity.x+=20;
+            invisible_ball = create_ball(ball.centerX,ball.centerY);
+            invisible_ball.visible = false;
+            invisible_ball.body.velocity.setTo(800,800);
+            
         }
+        if(invisible_ball.body.blocked.right){
+                invisible_ball.body.velocity.setTo(0,0);
+                var distanceToMove = Math.abs(paddle2.body.centerX - invisible_ball.body.centerX);
+                paddle2.moveTo(1000,distanceToMove,90);
+            }
         if(game.physics.arcade.collide(paddle2,ball)){
             game.sound.play('boop2');
             ball.body.velocity.x+=20;
@@ -57,39 +72,47 @@ var showDebug = true;
 
         if(ball.body.blocked.left){
             score2+=1;
+            game.sound.play('death');
+            launch_ball();
         }
         else if(ball.body.blocked.right){
             score1+=1;
+            game.sound.play('death');
+            launch_ball();
         }
 
-        paddle2.body.velocity.setTo(ball.body.velocity.y);
-        paddle2.body.velocity.x = 0;
-        paddle2.body.maxVelocity.y = 250;
+
+            //paddle2.body.velocity.setTo(ball.body.velocity.y*5);
+
+        
     }
 
     function render(){
         if(showDebug){
-            game.debug.bodyInfo(paddle1,32,32);
             game.debug.body(paddle1);
-            game.debug.bodyInfo(paddle2,32,432);
+            game.debug.bodyInfo(invisible_ball,32,432);
             game.debug.body(paddle2);
+            game.debug.body(invisible_ball);
         }
+    }
+    //On resize we will change the positions and sizes of things.
+    function resize(){
+        
     }
 
     function create_paddle(x,y){
         var paddle = game.add.sprite(x,y,'paddle');
         
         
-
         game.physics.arcade.enable(paddle);
+        paddle.body.syncBounds = true;
         paddle.anchor.setTo(0.5,0.5);
-        paddle.scale.setTo(0.5,0.5);
+        paddle.scale.setTo(game.world.height/5/256,0.5);
         paddle.body.collideWorldBounds = true;
         paddle.body.immovable = true;
-
         return paddle;
     }
-    
+
     function control_paddle(paddle,y){
         paddle.y = y;
         if(paddle.y < paddle.height / 2){
@@ -101,13 +124,13 @@ var showDebug = true;
     }
 
     function create_ball(x,y){
-        var ball = game.add.sprite(x,y,'ball');
-        ball.anchor.setTo(0.5,0.5);
-        game.physics.arcade.enable(ball);
-        ball.body.collideWorldBounds = true;
-        ball.body.bounce.setTo(1,1);
+        var newBall = game.add.sprite(x,y,'ball');
+        newBall.anchor.setTo(0.5,0.5);
+        game.physics.arcade.enable(newBall);
+        newBall.body.collideWorldBounds = true;
+        newBall.body.bounce.setTo(1,1);
 
-        return ball;
+        return newBall;
     }
 
     function launch_ball(){
@@ -123,6 +146,7 @@ var showDebug = true;
             ball_launched = true;
         }
         paddle2.y = game.world.height /2;
+
     }
 
     function check_sounds_loaded(){
