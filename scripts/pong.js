@@ -11,7 +11,7 @@ var score2;
 var score2_text;
 var score1_text;
 var win_text;
-var showDebug = true;;
+var showDebug = false;
 var invisible_ball;
     function preload(){
         game.load.image('paddle','assets/paddle.png');
@@ -119,7 +119,6 @@ var invisible_ball;
         paddle.scale.setTo(.5,game.world.height/5/256);
         paddle.body.collideWorldBounds = true;
         paddle.body.immovable = true;
-        paddle.body.friction.setTo(0,10);
         return paddle;
     }
 
@@ -138,9 +137,8 @@ var invisible_ball;
         newBall.anchor.setTo(0.5,0.5);
         game.physics.arcade.enable(newBall);
         newBall.body.collideWorldBounds = true;
-        newBall.body.bounce.setTo(1,1);
+        newBall.body.bounce.setTo(1.1,1.1);
         newBall.renderable = !invisible;
-        //newBall.body.setCircle(16);
 
 
         return newBall;
