@@ -1,6 +1,6 @@
 
 
-var game = new Phaser.Game('100%','100%',Phaser.AUTO,'',{preload:preload,create: create,update:update,render:render,resize:resize});
+var game = new Phaser.Game('100%','90%',Phaser.AUTO,'',{preload:preload,create: create,update:update,render:render,resize:resize});
 var paddle1;
 var paddle2;
 var ball;
@@ -11,7 +11,7 @@ var score2;
 var score2_text;
 var score1_text;
 var win_text;
-var showDebug = false;
+var showDebug = true;
 var invisible_ball;
     function preload(){
         game.load.image('paddle','assets/paddle.png');
@@ -32,7 +32,7 @@ var invisible_ball;
         paddle2 = create_paddle(game.world.width - 8 , game.world.centerY);
         ball = create_ball(game.world.centerX,game.world.centerY,false);
         invisible_ball = create_ball(game.world.centerX,game.world.centerY,true);
-        game.input.onDown.add(launch_ball,this);
+        game.input.onTap.add(launch_ball,this);
 
         score1_text = game.add.bitmapText(128,128,'font','0',64);
         score2_text = game.add.bitmapText(game.world.width-128,128,'font','0',64);
