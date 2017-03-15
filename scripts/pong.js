@@ -1,6 +1,7 @@
 
 
 var game = new Phaser.Game('100%','90%',Phaser.AUTO,'',{preload:preload,create: create,update:update,render:render,resize:resize});
+
 var paddle1;
 var paddle2;
 var ball;
