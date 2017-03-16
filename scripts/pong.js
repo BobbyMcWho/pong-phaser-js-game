@@ -12,7 +12,7 @@ var score2;
 var score2_text;
 var score1_text;
 var win_text;
-var showDebug = true;
+var showDebug = false;
 var invisible_ball;
     function preload(){
         game.load.image('paddle','assets/paddle.png');
